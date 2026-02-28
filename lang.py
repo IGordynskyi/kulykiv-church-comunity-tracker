@@ -40,6 +40,8 @@ _STRINGS = {
 
     # ── Address panel ────────────────────────────────────────────────────────
     "addresses_header":     {"en": "ADDRESSES",          "uk": "АДРЕСИ"},
+    "lbl_active_total":     {"en": "Parishioners: {count}",
+                             "uk": "Парафіян: {count}"},
     "btn_add":              {"en": "+ Add",              "uk": "+ Додати"},
     "btn_edit":             {"en": "Edit",               "uk": "Правити"},
     "btn_delete":           {"en": "Delete",             "uk": "Видалити"},

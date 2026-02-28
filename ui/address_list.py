@@ -49,11 +49,19 @@ class AddressListPanel(ttk.Frame):
         ttk.Button(btn_frame, text=lang.get("btn_edit"),   command=self._edit_address).pack(side="left", padx=2)
         ttk.Button(btn_frame, text=lang.get("btn_delete"), command=self._delete_address).pack(side="left", padx=2)
 
+        ttk.Separator(self, orient="horizontal").pack(fill="x", padx=8)
+        self._total_var = tk.StringVar()
+        ttk.Label(self, textvariable=self._total_var,
+                  font=("", 9, "bold"), anchor="center").pack(fill="x", padx=8, pady=(4, 8))
+
     def refresh(self):
         self._addresses = db.get_addresses()
         self._listbox.delete(0, "end")
         for addr in self._addresses:
             self._listbox.insert("end", f"  {addr.street}  ({addr.active_count})")
+
+        total = sum(a.active_count for a in self._addresses)
+        self._total_var.set(lang.get("lbl_active_total", count=total))
 
         if self._selected_id is not None:
             for i, a in enumerate(self._addresses):

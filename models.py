@@ -36,7 +36,7 @@ class Resident:
 
     @property
     def is_married(self):
-        return self.marriage_date is not None
+        return self.marriage_date is not None or bool(self.spouse)
 
 
 @dataclass
