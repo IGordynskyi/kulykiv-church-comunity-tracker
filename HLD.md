@@ -1,6 +1,6 @@
 # High-Level Design Document
 ## Church Community Population Tracker
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-02-28
 **Status:** Current
 
@@ -13,7 +13,8 @@
 | 1.0 | 2026-02-28 | Initial release |
 | 1.1 | 2026-02-28 | Added Date of Death column to residents table; added Ukrainian language support (`lang.py`); added cross-platform install scripts |
 | 1.2 | 2026-02-28 | Added import from CSV/Excel; hardcoded city name (Kulykiv); DD.MM.YYYY display format for all dates; View (read-only) button; address format "Street Name Number" with Python-based Unicode sort; removed dummy seed data |
-| 1.3 | 2026-02-28 | Added Father, Mother, Husband/Wife fields to Resident; DB migration for existing databases |
+| 1.3 | 2026-02-28 | Added Father, Mother, Husband/Wife fields to Resident; DB migration for existing databases; active parishioner count in address panel |
+| 1.4 | 2026-02-28 | Added "left" status (Mark Left / Виїхав); real-time search filter in both panels; window/taskbar icon (`img/church.png` + `church.ico`); fixed `install.py` crash; fixed export/import for "left" status |
 
 ---
 
@@ -153,13 +154,13 @@ Three `@dataclass` classes carry data between layers:
 | Class | Key Fields | Notes |
 |---|---|---|
 | `Address` | `id`, `street`, `notes`, `active_count` | `active_count` is computed by SQL aggregate, not stored |
-| `Resident` | `id`, `address_id`, `first/last_name`, `father`, `mother`, `spouse`, `birth/baptism/marriage/death_date`, `status`, `notes` | `status` ∈ `{'active', 'deceased'}` |
+| `Resident` | `id`, `address_id`, `first/last_name`, `father`, `mother`, `spouse`, `birth/baptism/marriage/death_date`, `status`, `notes` | `status` ∈ `{'active', 'deceased', 'left'}` |
 | `Event` | `id`, `resident_id`, `event_type`, `event_date`, `description`, `created_at`, `resident_name` | `resident_name` is populated by JOIN, not stored |
 
 Computed properties on `Resident`:
 - `full_name` → `"{first_name} {last_name}"`
 - `is_baptized` → `baptism_date is not None`
-- `is_married` → `marriage_date is not None`
+- `is_married` → `marriage_date is not None or bool(spouse)`
 
 ### 5.3 `database.py` — Data Access Layer
 
@@ -170,7 +171,7 @@ Provides all database operations grouped by entity:
 | Lifecycle | `init_db()` — creates tables + runs column migrations |
 | Config | `get_config(key)`, `set_config(key, value)` |
 | Addresses | `get_addresses()`, `add_address()`, `update_address()`, `delete_address()`, `find_or_create_address()` |
-| Residents | `get_residents(addr_id)`, `get_all_residents()`, `add_resident()`, `update_resident()`, `delete_resident()`, `mark_deceased()`, `resident_exists()` |
+| Residents | `get_residents(addr_id)`, `get_all_residents()`, `add_resident()`, `update_resident()`, `delete_resident()`, `mark_deceased()`, `mark_left()`, `resident_exists()` |
 | Events | `get_events_for_address(addr_id)`, `add_event()` |
 
 `get_addresses()` fetches rows without SQL ordering and sorts in Python using `_address_sort_key()`,
@@ -225,11 +226,14 @@ was recorded. They are translated to the current language only at display time.
 
 `AddressListPanel(ttk.Frame)` manages the address list:
 
+- Real-time 🔍 search bar at the top; typing filters `_displayed` (subset of `_addresses`) in-place
 - `tk.Listbox` with vertical scrollbar, displays `"  {street}  ({active_count})"`
+- All listbox index operations use `_displayed` (filtered list), not the full `_addresses` list
+- Active parishioner total at the bottom always sums across **all** addresses (not just filtered)
 - Add / Edit / Delete buttons (labels from `lang.get()`)
 - Double-click on an address opens the Edit dialog
 - Selection change fires the `on_select` callback (injected from `MainWindow`) to update the right panel
-- `refresh()` re-queries the database and restores the previously selected address by ID
+- `refresh()` re-queries the database then calls `_apply_filter()` which restores selection by ID
 
 ### 5.7 `ui/resident_view.py` — Right Panel
 
@@ -243,10 +247,12 @@ was recorded. They are translated to the current language only at display time.
 | Date of Birth | `birth_date` displayed as DD.MM.YYYY |
 | Baptized | `yes` / `no` (localized) |
 | Married | `yes` / `no` (localized) |
-| Status | `active` / `deceased` (localized; deceased rows rendered in gray) |
-| Date of Death | `death_date` displayed as DD.MM.YYYY; blank for active residents |
+| Status | `active` / `deceased` / `left` (localized; deceased = gray, left = blue `#5577bb`) |
+| Date of Death | `death_date` displayed as DD.MM.YYYY; blank for active/left residents |
 
-Action buttons: **+ Add Member**, **View**, **Edit**, **Record Event**, **Mark Deceased**, **Remove**
+Real-time 🔍 name search bar above the table filters by `full_name` (first + last combined).
+
+Action buttons: **+ Add Member**, **View**, **Edit**, **Record Event**, **Mark Deceased**, **Mark Left**, **Remove**
 (all labels from `lang.get()`). The **View** button opens a read-only `ResidentViewDialog`.
 
 **Bottom section — Event History (`tk.Text`, read-only)**

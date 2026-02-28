@@ -211,6 +211,14 @@ def mark_deceased(res_id: int, death_date: str):
         )
 
 
+def mark_left(res_id: int):
+    with get_connection() as conn:
+        conn.execute(
+            "UPDATE residents SET status='left' WHERE id=?",
+            (res_id,),
+        )
+
+
 # ── Events ───────────────────────────────────────────────────────────────────
 
 def get_events_for_address(address_id: int) -> List[Event]:

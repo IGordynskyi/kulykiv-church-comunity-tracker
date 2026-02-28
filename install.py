@@ -95,7 +95,6 @@ sys.path.insert(0, APP_DIR)
 try:
     import database as db
     db.init_db()
-    db.seed_dummy_data()
     ok(f"Database ready: {db.DB_PATH}")
 except Exception as e:
     fail(f"Database init failed: {e}")

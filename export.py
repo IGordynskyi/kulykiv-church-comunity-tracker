@@ -29,8 +29,12 @@ def _get_address_street(address_id: int) -> str:
 
 
 def _resident_row(r: Resident) -> list:
-    status = lang.get("status_deceased") if r.status == "deceased" \
-             else lang.get("status_active")
+    if r.status == "deceased":
+        status = lang.get("status_deceased")
+    elif r.status == "left":
+        status = lang.get("status_left")
+    else:
+        status = lang.get("status_active")
     return [
         r.last_name,
         r.first_name,
@@ -96,8 +100,8 @@ def export_excel(path: str, residents: List[Resident]):
 
 # Accepted status values in any language → canonical DB value
 _STATUS_MAP = {
-    "active": "active", "deceased": "deceased",
-    "активний": "active", "помер": "deceased",
+    "active": "active", "deceased": "deceased", "left": "left",
+    "активний": "active", "помер": "deceased", "виїхав": "left",
 }
 
 

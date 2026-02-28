@@ -30,6 +30,7 @@ class ResidentViewPanel(ttk.Frame):
         self._address: Optional[Address] = None
         self._residents: List[Resident] = []
         self._on_change = on_change or (lambda: None)
+        self._name_filter_var = tk.StringVar()  # created before _build_ui wires the trace
         self._build_ui()
         self._show_placeholder()
 
@@ -40,6 +41,16 @@ class ResidentViewPanel(ttk.Frame):
         header.pack(fill="x", padx=10, pady=(8, 4))
 
         ttk.Separator(self, orient="horizontal").pack(fill="x", padx=8)
+
+        # ── Name search bar ──────────────────────────────────────────────────
+        sf = ttk.Frame(self)
+        sf.pack(fill="x", padx=8, pady=(6, 0))
+        ttk.Label(sf, text="🔍", font=("", 9)).pack(side="left")
+        self._name_filter_var.trace_add("write", lambda *_: self._apply_name_filter())
+        ttk.Entry(sf, textvariable=self._name_filter_var,
+                  font=("", 9)).pack(side="left", fill="x", expand=True, padx=(4, 2))
+        ttk.Button(sf, text="✕", width=2,
+                   command=lambda: self._name_filter_var.set("")).pack(side="left")
 
         # ── Residents table ──────────────────────────────────────────────────
         res_frame = ttk.Frame(self)
@@ -72,8 +83,9 @@ class ResidentViewPanel(ttk.Frame):
         vsb.pack(side="right", fill="y")
         self._tree.pack(side="left", fill="both", expand=True)
 
-        # Tag for deceased (gray text)
+        # Tag for deceased (gray text) and left (blue text)
         self._tree.tag_configure("deceased", foreground="gray")
+        self._tree.tag_configure("left", foreground="#5577bb")
 
         # ── Action buttons ───────────────────────────────────────────────────
         btn_frame = ttk.Frame(self)
@@ -83,9 +95,10 @@ class ResidentViewPanel(ttk.Frame):
         self._btn_edit   = ttk.Button(btn_frame, text=lang.get("btn_edit"),         command=self._edit_resident)
         self._btn_event  = ttk.Button(btn_frame, text=lang.get("btn_record_event"), command=self._record_event)
         self._btn_death  = ttk.Button(btn_frame, text=lang.get("btn_mark_deceased"),command=self._mark_deceased)
+        self._btn_left   = ttk.Button(btn_frame, text=lang.get("btn_mark_left"),    command=self._mark_left)
         self._btn_delete = ttk.Button(btn_frame, text=lang.get("btn_remove"),       command=self._delete_resident)
         for btn in (self._btn_add, self._btn_view, self._btn_edit, self._btn_event,
-                    self._btn_death, self._btn_delete):
+                    self._btn_death, self._btn_left, self._btn_delete):
             btn.pack(side="left", padx=3)
 
         ttk.Separator(self, orient="horizontal").pack(fill="x", padx=8, pady=(4, 0))
@@ -119,7 +132,7 @@ class ResidentViewPanel(ttk.Frame):
 
     def _set_buttons_state(self, state: str):
         for btn in (self._btn_add, self._btn_view, self._btn_edit, self._btn_event,
-                    self._btn_death, self._btn_delete):
+                    self._btn_death, self._btn_left, self._btn_delete):
             btn.config(state=state)
 
     def load_address(self, address: Optional[Address]):
@@ -133,14 +146,27 @@ class ResidentViewPanel(ttk.Frame):
         self._refresh_events()
 
     def _refresh_residents(self):
-        self._tree.delete(*self._tree.get_children())
         if not self._address:
+            self._tree.delete(*self._tree.get_children())
             return
         self._residents = db.get_residents(self._address.id)
+        self._apply_name_filter()
+
+    def _apply_name_filter(self):
+        q = self._name_filter_var.get().strip().lower()
+        self._tree.delete(*self._tree.get_children())
         for r in self._residents:
-            tag = "deceased" if r.status == "deceased" else ""
-            status_label = lang.get("status_deceased") if r.status == "deceased" \
-                           else lang.get("status_active")
+            if q and q not in r.full_name.lower():
+                continue
+            if r.status == "deceased":
+                tag = "deceased"
+                status_label = lang.get("status_deceased")
+            elif r.status == "left":
+                tag = "left"
+                status_label = lang.get("status_left")
+            else:
+                tag = ""
+                status_label = lang.get("status_active")
             self._tree.insert(
                 "", "end",
                 iid=str(r.id),
@@ -273,6 +299,32 @@ class ResidentViewPanel(ttk.Frame):
             self._refresh_residents()
             self._refresh_events()
             self._on_change()
+
+    def _mark_left(self):
+        res = self._selected_resident()
+        if not res:
+            messagebox.showinfo(lang.get("info"),
+                                lang.get("select_resident_first"), parent=self)
+            return
+        if res.status == "left":
+            messagebox.showinfo(lang.get("already_left"),
+                                lang.get("already_left_msg", name=res.full_name),
+                                parent=self)
+            return
+        if res.status == "deceased":
+            messagebox.showinfo(lang.get("already_deceased"),
+                                lang.get("already_deceased_msg", name=res.full_name),
+                                parent=self)
+            return
+        if not messagebox.askyesno(
+            lang.get("btn_mark_left"),
+            lang.get("confirm_mark_left", name=res.full_name),
+            parent=self,
+        ):
+            return
+        db.mark_left(res.id)
+        self._refresh_residents()
+        self._on_change()
 
     def _delete_resident(self):
         res = self._selected_resident()

@@ -26,11 +26,34 @@ class MainWindow(tk.Tk):
         saved_lang = db.get_config("language", "en")
         lang.set_lang(saved_lang)
 
+        self._set_icon()
         self.geometry("1050x660")
         self.minsize(780, 520)
         self._update_title()
         self._build_menu()
         self._build_ui()
+
+    def _set_icon(self):
+        """Set window / taskbar icon from img/church.png (and .ico on Windows)."""
+        base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+        # Windows taskbar / title bar: prefer .ico when available
+        if sys.platform == "win32":
+            ico = os.path.join(base, "img", "church.ico")
+            if os.path.exists(ico):
+                try:
+                    self.iconbitmap(default=ico)
+                    return
+                except Exception:
+                    pass
+        # Linux / macOS / Windows fallback: PNG via iconphoto
+        png = os.path.join(base, "img", "church.png")
+        if os.path.exists(png):
+            try:
+                img = tk.PhotoImage(file=png)
+                self.iconphoto(True, img)
+                self._icon_img = img  # keep reference so GC doesn't destroy it
+            except Exception:
+                pass
 
     def _update_title(self):
         self.title(f"{lang.get('app_title')} — {lang.get('city_name')}")

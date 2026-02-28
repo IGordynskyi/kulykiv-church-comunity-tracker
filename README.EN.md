@@ -84,11 +84,14 @@ The main window is split into two panels:
 
 - Lists all addresses sorted alphabetically by street name, then numerically by building number
 - Shows the number of **active** (living) residents next to each address in brackets
+- A **🔍 search bar** at the top filters the list in real time as you type
 - Click an address to view its residents on the right
 - Double-click an address to edit it
 - Use the **+ Add**, **Edit**, and **Delete** buttons to manage addresses
 
 ### Right Panel — Residents
+
+A **🔍 search bar** above the table filters residents by name (first or last) in real time.
 
 The table shows all residents at the selected address:
 
@@ -98,10 +101,10 @@ The table shows all residents at the selected address:
 | Date of Birth | DD.MM.YYYY |
 | Baptized | yes / no |
 | Married | yes / no |
-| Status | active / deceased |
+| Status | active / deceased / left |
 | Date of Death | DD.MM.YYYY (blank if living) |
 
-Deceased residents are shown in **gray**.
+Deceased residents are shown in **gray**. Residents who have left the community are shown in **blue**.
 
 ### Action Buttons
 
@@ -112,6 +115,7 @@ Deceased residents are shown in **gray**.
 | **Edit** | Edit the selected person's details |
 | **Record Event** | Log a baptism, marriage, birth, or death for the selected person |
 | **Mark Deceased** | Quickly record the date of death for the selected person |
+| **Mark Left** | Mark the selected person as having left the community (row turns blue) |
 | **Remove** | Remove the selected person from the address (also deletes their event history) |
 
 ### Event History Log
@@ -201,6 +205,18 @@ appears in the table, and the event is added to the history log.
 
 ---
 
+## Marking a Person as Having Left
+
+1. Select the address, then select the person in the table
+2. Click **Mark Left**
+3. Confirm the action in the dialog
+
+The person's status changes to *left* and their row turns blue. They are no longer counted
+in the active parishioner total. This action can be reversed by editing the person's record
+and changing the status manually if needed.
+
+---
+
 ## Editing a Resident's Details
 
 1. Select the person in the table
@@ -274,11 +290,14 @@ If you want to distribute the app to a computer without Python installed:
 
 ```bash
 pip install pyinstaller
-pyinstaller --onefile --windowed --name "ChurchTracker" main.py
+pyinstaller --onefile --windowed --icon=img/church.ico --add-data "img;img" --name ChurchTracker main.py
 ```
 
 The output file `dist/ChurchTracker.exe` can be copied to any Windows PC
 and run without installing Python.
+
+> On Linux / macOS use a colon instead of semicolon in `--add-data`:
+> `--add-data "img:img"`
 
 ---
 

@@ -278,8 +278,12 @@ class ResidentViewDialog(tk.Toplevel):
             ttk.Label(frame, text=value or "—").grid(
                 row=r, column=1, sticky="w", padx=8, pady=3)
 
-        status_label = lang.get("status_deceased") if resident.status == "deceased" \
-                       else lang.get("status_active")
+        if resident.status == "deceased":
+            status_label = lang.get("status_deceased")
+        elif resident.status == "left":
+            status_label = lang.get("status_left")
+        else:
+            status_label = lang.get("status_active")
 
         row_label(0, "lbl_first_name", resident.first_name)
         row_label(1, "lbl_last_name",  resident.last_name)

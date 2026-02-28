@@ -13,7 +13,8 @@ class AddressListPanel(ttk.Frame):
     def __init__(self, parent, on_select: Callable[[Optional[Address]], None]):
         super().__init__(parent)
         self._on_select = on_select
-        self._addresses: List[Address] = []
+        self._addresses: List[Address] = []   # full list from DB
+        self._displayed: List[Address] = []   # after applying filter
         self._selected_id: Optional[int] = None
 
         self._build_ui()
@@ -22,6 +23,17 @@ class AddressListPanel(ttk.Frame):
     def _build_ui(self):
         ttk.Label(self, text=lang.get("addresses_header"),
                   font=("", 10, "bold")).pack(fill="x", padx=8, pady=(8, 4))
+
+        # ── Address search bar ───────────────────────────────────────────────
+        sf = ttk.Frame(self)
+        sf.pack(fill="x", padx=8, pady=(0, 4))
+        ttk.Label(sf, text="🔍", font=("", 9)).pack(side="left")
+        self._search_var = tk.StringVar()
+        self._search_var.trace_add("write", lambda *_: self._apply_filter())
+        ttk.Entry(sf, textvariable=self._search_var,
+                  font=("", 9)).pack(side="left", fill="x", expand=True, padx=(4, 2))
+        ttk.Button(sf, text="✕", width=2,
+                   command=lambda: self._search_var.set("")).pack(side="left")
 
         list_frame = ttk.Frame(self)
         list_frame.pack(fill="both", expand=True, padx=4)
@@ -56,35 +68,41 @@ class AddressListPanel(ttk.Frame):
 
     def refresh(self):
         self._addresses = db.get_addresses()
+        self._apply_filter()
+
+    def _apply_filter(self):
+        q = self._search_var.get().strip().lower()
+        self._displayed = [a for a in self._addresses
+                           if not q or q in a.street.lower()]
+
         self._listbox.delete(0, "end")
-        for addr in self._addresses:
+        for addr in self._displayed:
             self._listbox.insert("end", f"  {addr.street}  ({addr.active_count})")
 
+        # Total always reflects ALL addresses, not just the filtered subset
         total = sum(a.active_count for a in self._addresses)
         self._total_var.set(lang.get("lbl_active_total", count=total))
 
+        # Restore selection highlight if the selected address is still visible
         if self._selected_id is not None:
-            for i, a in enumerate(self._addresses):
+            for i, a in enumerate(self._displayed):
                 if a.id == self._selected_id:
                     self._listbox.selection_set(i)
                     self._listbox.see(i)
                     break
-            else:
-                self._selected_id = None
-                self._on_select(None)
 
     def _on_listbox_select(self, _event=None):
         sel = self._listbox.curselection()
         if sel:
-            self._selected_id = self._addresses[sel[0]].id
-            self._on_select(self._addresses[sel[0]])
+            self._selected_id = self._displayed[sel[0]].id
+            self._on_select(self._displayed[sel[0]])
         else:
             self._selected_id = None
             self._on_select(None)
 
     def _selected_address(self) -> Optional[Address]:
         sel = self._listbox.curselection()
-        return self._addresses[sel[0]] if sel else None
+        return self._displayed[sel[0]] if sel else None
 
     def _add_address(self):
         dlg = AddressDialog(self)
