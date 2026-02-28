@@ -63,11 +63,8 @@ After installation a launch shortcut is created automatically.
 
 ## First Launch
 
-On the very first launch the app will load a set of **sample data**
-(4 addresses, 12 residents, several events) so you can explore the interface
-before entering your real data.
-When you are ready to start fresh, simply delete all the sample addresses —
-their residents and events will be removed automatically.
+The app starts with an empty database. Begin by adding your first address
+in the left panel, then add residents to it.
 
 ---
 
@@ -85,7 +82,7 @@ The main window is split into two panels:
 
 ### Left Panel — Addresses
 
-- Lists all addresses in alphabetical order
+- Lists all addresses sorted alphabetically by street name, then numerically by building number
 - Shows the number of **active** (living) residents next to each address in brackets
 - Click an address to view its residents on the right
 - Double-click an address to edit it
@@ -98,11 +95,11 @@ The table shows all residents at the selected address:
 | Column | Description |
 |---|---|
 | Name | Full name |
-| Date of Birth | YYYY-MM-DD |
+| Date of Birth | DD.MM.YYYY |
 | Baptized | yes / no |
 | Married | yes / no |
 | Status | active / deceased |
-| Date of Death | YYYY-MM-DD (blank if living) |
+| Date of Death | DD.MM.YYYY (blank if living) |
 
 Deceased residents are shown in **gray**.
 
@@ -111,6 +108,7 @@ Deceased residents are shown in **gray**.
 | Button | Action |
 |---|---|
 | **+ Add Member** | Add a new person to this address |
+| **View** | Show a read-only summary of the selected person |
 | **Edit** | Edit the selected person's details |
 | **Record Event** | Log a baptism, marriage, birth, or death for the selected person |
 | **Mark Deceased** | Quickly record the date of death for the selected person |
@@ -132,9 +130,12 @@ Each entry shows:
 ## Adding a New Address
 
 1. Click **+ Add** in the left panel
-2. Enter the street address
+2. Enter the street address in **Street Name Number** format (e.g. `Church Lane 12` or `Шевченка 5`)
 3. Optionally add a note (e.g. "corner house", "near the park")
 4. Click **Save**
+
+Addresses are sorted automatically: alphabetically by street name (supports both Latin
+and Cyrillic), and numerically by building number within the same street.
 
 ---
 
@@ -144,17 +145,30 @@ Each entry shows:
 2. Click **+ Add Member**
 3. Fill in the details:
    - First name and last name (required)
-   - Date of birth (YYYY-MM-DD)
-   - Date of baptism (YYYY-MM-DD)
-   - Date of marriage (YYYY-MM-DD)
-   - Date of death (YYYY-MM-DD) — only if the person has already passed away
+   - Father (optional)
+   - Mother (optional)
+   - Husband / Wife (optional)
+   - Date of birth (DD.MM.YYYY)
+   - Date of baptism (DD.MM.YYYY)
+   - Date of marriage (DD.MM.YYYY)
+   - Date of death (DD.MM.YYYY) — only if the person has already passed away
    - Notes (optional)
 4. Click **Save**
 
-> **Date format:** All dates must be entered as `YYYY-MM-DD`
-> (e.g. `1985-06-15` for 15 June 1985).
+> **Date format:** All dates must be entered as `DD.MM.YYYY`
+> (e.g. `15.06.1985` for 15 June 1985).
 > Leave a field blank if the information is not known or not applicable.
 > Use the **✕** button next to any date field to clear it.
+
+---
+
+## Viewing a Resident's Record
+
+1. Select the person in the table
+2. Click **View**
+
+A read-only popup shows all stored details: name, family members, all dates, status,
+and notes.
 
 ---
 
@@ -165,7 +179,7 @@ To add a baptism, marriage, or other event for an existing resident:
 1. Select the address, then select the person in the table
 2. Click **Record Event**
 3. Choose the event type from the dropdown: birth, baptism, marriage, death
-4. Enter the date (YYYY-MM-DD)
+4. Enter the date (DD.MM.YYYY)
 5. Optionally add a description
 6. Click **Save**
 
@@ -179,7 +193,7 @@ To add a baptism, marriage, or other event for an existing resident:
 
 1. Select the address, then select the person in the table
 2. Click **Mark Deceased**
-3. Enter the date of death (YYYY-MM-DD)
+3. Enter the date of death (DD.MM.YYYY)
 4. Click **Confirm**
 
 The person's status changes to *deceased*, their row turns gray, the date of death
@@ -276,5 +290,4 @@ and run without installing Python.
 | `No matching distribution found for tkinter` | tkinter cannot be installed via pip — use the system package manager (see above) |
 | Excel export fails with "openpyxl is not installed" | Run `pip install openpyxl` |
 | App does not start on Windows | Make sure Python is added to PATH; try running `python main.py` in a Command Prompt |
-| Sample data appears on first launch | This is expected — delete the sample addresses when ready to enter real data |
 | Excel import fails with "openpyxl is not installed" | Run `pip install openpyxl` |
