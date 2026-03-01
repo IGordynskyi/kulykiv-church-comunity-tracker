@@ -30,7 +30,7 @@
 
 ### Linux (Ubuntu / Debian)
 
-Відкрийте термінал у папці `church_tracker` і виконайте:
+Відкрийте термінал у папці `програми` і виконайте:
 
 ```bash
 sudo apt install python3-tk     # встановити tkinter, якщо ще не встановлено
@@ -39,7 +39,7 @@ bash install.sh
 
 ### macOS
 
-Відкрийте термінал у папці `church_tracker` і виконайте:
+Відкрийте термінал у папці `програми` і виконайте:
 
 ```bash
 bash install.sh
@@ -58,7 +58,7 @@ bash install.sh
 |---|---|
 | Windows | Двічі клацніть **`run.bat`** |
 | Linux / macOS | Виконайте `bash run.sh` у терміналі |
-| Будь-яка платформа | `python3 main.py` з папки `church_tracker` |
+| Будь-яка платформа | `python3 main.py` з папки `програми` |
 
 ---
 

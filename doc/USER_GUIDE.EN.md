@@ -29,7 +29,7 @@ a full event history, and export your data to Excel or CSV at any time.
 
 ### Linux (Ubuntu / Debian)
 
-Open a terminal in the `church_tracker` folder and run:
+Open a terminal in the `program folder` folder and run:
 
 ```bash
 sudo apt install python3-tk     # install tkinter if not already present
@@ -38,7 +38,7 @@ bash install.sh
 
 ### macOS
 
-Open a terminal in the `church_tracker` folder and run:
+Open a terminal in the `program folder` folder and run:
 
 ```bash
 bash install.sh
@@ -57,7 +57,7 @@ After installation a launch shortcut is created automatically.
 |---|---|
 | Windows | Double-click **`run.bat`** |
 | Linux / macOS | Run `bash run.sh` in the terminal |
-| Any platform | `python3 main.py` from the `church_tracker` folder |
+| Any platform | `python3 main.py` from the `program folder` folder |
 
 ---
 

@@ -113,7 +113,7 @@ keeping a clean separation of concerns.
 ## 4. Project File Structure
 
 ```
-church_tracker/
+./
 ├── main.py              Entry point, MainWindow, menu bar
 ├── models.py            Dataclasses: Address, Resident, Event
 ├── database.py          SQLite CRUD + schema migration
