@@ -61,25 +61,95 @@ class MainWindow(tk.Tk):
     def _build_menu(self):
         self._menubar = tk.Menu(self)
 
-        file_menu = tk.Menu(self._menubar, tearoff=0)
-        file_menu.add_command(label=lang.get("menu_export_csv"),   command=self._export_csv)
-        file_menu.add_command(label=lang.get("menu_export_excel"), command=self._export_excel)
-        file_menu.add_separator()
-        file_menu.add_command(label=lang.get("menu_import_csv"),   command=self._import_csv)
-        file_menu.add_command(label=lang.get("menu_import_excel"), command=self._import_excel)
-        file_menu.add_separator()
-        file_menu.add_command(label=lang.get("menu_exit"), command=self.quit)
-        self._menubar.add_cascade(label=lang.get("menu_file"), menu=file_menu)
+        self._file_menu = tk.Menu(self._menubar, tearoff=0,
+                                  postcommand=self._on_menu_posted)
+        self._file_menu.add_command(label=lang.get("menu_export_csv"),   command=self._export_csv)
+        self._file_menu.add_command(label=lang.get("menu_export_excel"), command=self._export_excel)
+        self._file_menu.add_separator()
+        self._file_menu.add_command(label=lang.get("menu_import_csv"),   command=self._import_csv)
+        self._file_menu.add_command(label=lang.get("menu_import_excel"), command=self._import_excel)
+        self._file_menu.add_separator()
+        self._file_menu.add_command(label=lang.get("menu_exit"), command=self.quit)
+        self._menubar.add_cascade(label=lang.get("menu_file"), menu=self._file_menu)
 
-        settings_menu = tk.Menu(self._menubar, tearoff=0)
-        settings_menu.add_command(label=lang.get("menu_language"), command=self._change_language)
-        self._menubar.add_cascade(label=lang.get("menu_settings"), menu=settings_menu)
+        self._settings_menu = tk.Menu(self._menubar, tearoff=0,
+                                      postcommand=self._on_menu_posted)
+        self._settings_menu.add_command(label=lang.get("menu_language"), command=self._change_language)
+        self._menubar.add_cascade(label=lang.get("menu_settings"), menu=self._settings_menu)
 
-        help_menu = tk.Menu(self._menubar, tearoff=0)
-        help_menu.add_command(label=lang.get("menu_about"), command=self._show_about)
-        self._menubar.add_cascade(label=lang.get("menu_help"), menu=help_menu)
+        self._help_menu = tk.Menu(self._menubar, tearoff=0,
+                                  postcommand=self._on_menu_posted)
+        self._help_menu.add_command(label=lang.get("menu_about"), command=self._show_about)
+        self._menubar.add_cascade(label=lang.get("menu_help"), menu=self._help_menu)
 
         self.config(menu=self._menubar)
+
+        # ── Layer 1: direct Tcl binding (no Python overhead, works even when
+        # the Python event loop is busy).  Fires for every <Unmap> on the
+        # root window and calls unpost on every cascade menu directly.
+        self.tk.eval(
+            "bind . <Unmap> {+foreach _m {%s %s %s} {catch {$_m unpost}}}"
+            % (self._file_menu._w, self._settings_menu._w, self._help_menu._w)
+        )
+
+        # ── Layer 2: Python <Unmap> binding (X11 fast path)
+        self.bind("<Unmap>", self._on_unmap)
+
+        self._menu_poll_id = None
+
+    def _on_menu_posted(self):
+        """Start a 50 ms poll while any cascade menu is open.
+
+        Needed for compositing WMs (GNOME/Mutter on Wayland) that hide the
+        window without sending X11 UnmapNotify, so <Unmap> never fires.
+        The poll stops the moment the window becomes invisible or iconic.
+        """
+        if self._menu_poll_id is not None:
+            self.after_cancel(self._menu_poll_id)
+        self._menu_poll_ticks = 0
+        self._menu_poll_id = self.after(50, self._poll_for_iconify)
+
+    def _poll_for_iconify(self):
+        self._menu_poll_ticks += 1
+        if self._menu_poll_ticks > 200:        # 10-second safety cap
+            self._menu_poll_id = None
+            return
+        try:
+            # winfo_ismapped() is False when the X11 window is unmapped;
+            # state() returns "iconic" / "withdrawn" when Tk tracks it.
+            # Either condition means the window has been minimised.
+            hidden = (not self.winfo_ismapped() or
+                      self.state() in ("iconic", "withdrawn"))
+        except tk.TclError:
+            self._menu_poll_id = None
+            return
+        if hidden:
+            self._close_menus()
+            self._menu_poll_id = None
+            return
+        self._menu_poll_id = self.after(50, self._poll_for_iconify)
+
+    def _close_menus(self):
+        """Dismiss any open cascade dropdown via every available mechanism."""
+        # Approach A: release the active grab held by the posted menu —
+        # the most direct way regardless of which cascade is currently shown.
+        try:
+            grabbed = self.tk.call("grab", "current", self._w)
+            if grabbed:
+                self.tk.call(grabbed, "unpost")
+        except tk.TclError:
+            pass
+        # Approach B: unpost each cascade explicitly.
+        for menu in (self._file_menu, self._settings_menu, self._help_menu):
+            try:
+                menu.unpost()
+            except tk.TclError:
+                pass
+
+    def _on_unmap(self, event):
+        # '.' is the Tcl path of the root Tk window
+        if str(event.widget) == ".":
+            self._close_menus()
 
     def _build_ui(self):
         paned = tk.PanedWindow(self, orient="horizontal",

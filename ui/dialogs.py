@@ -43,8 +43,12 @@ def _to_iso(display: str) -> str:
 def _validate_date(value: str) -> bool:
     if not value:
         return True
-    import re
-    return bool(re.match(r"^\d{2}\.\d{2}\.\d{4}$", value))
+    import datetime
+    try:
+        datetime.datetime.strptime(value, "%d.%m.%Y")
+        return True
+    except ValueError:
+        return False
 
 
 # ── Address Dialog ────────────────────────────────────────────────────────────

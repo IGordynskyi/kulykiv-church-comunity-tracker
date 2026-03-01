@@ -266,14 +266,12 @@ class ResidentViewPanel(ttk.Frame):
         if dlg.result:
             r = db.add_resident(dlg.result)
             if r.birth_date:
-                import models
-                db.add_event(models.Event(
+                db.add_event(Event(
                     None, r.id, "birth", r.birth_date,
                     lang.get("auto_born", name=r.full_name)
                 ))
             if r.death_date:
-                import models
-                db.add_event(models.Event(
+                db.add_event(Event(
                     None, r.id, "death", r.death_date,
                     lang.get("auto_died", name=r.full_name)
                 ))
@@ -310,6 +308,11 @@ class ResidentViewPanel(ttk.Frame):
                 res.marriage_date = event.event_date
                 db.update_resident(res)
             elif event.event_type == "death":
+                if res.status == "deceased":
+                    messagebox.showinfo(lang.get("already_deceased"),
+                                        lang.get("already_deceased_msg", name=res.full_name),
+                                        parent=self)
+                    return
                 db.mark_deceased(res.id, event.event_date)
             self._refresh_residents()
             self._refresh_events()
@@ -329,8 +332,7 @@ class ResidentViewPanel(ttk.Frame):
         dlg = MarkDeceasedDialog(self, res)
         if dlg.result:
             db.mark_deceased(res.id, dlg.result)
-            import models
-            db.add_event(models.Event(
+            db.add_event(Event(
                 None, res.id, "death", dlg.result,
                 lang.get("auto_died", name=res.full_name)
             ))

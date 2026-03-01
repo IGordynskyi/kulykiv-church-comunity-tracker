@@ -258,9 +258,9 @@ def _row_to_resident(r) -> Resident:
         marriage_date=r["marriage_date"],
         death_date=r["death_date"],
         status=r["status"],
-        father=r["father"] if "father" in keys else None,
-        mother=r["mother"] if "mother" in keys else None,
-        spouse=r["spouse"] if "spouse" in keys else None,
+        father=r["father"] or None if "father" in keys else None,
+        mother=r["mother"] or None if "mother" in keys else None,
+        spouse=r["spouse"] or None if "spouse" in keys else None,
         notes=r["notes"] or "",
     )
 

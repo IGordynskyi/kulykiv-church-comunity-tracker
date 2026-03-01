@@ -108,6 +108,11 @@ class AddressListPanel(ttk.Frame):
         idx = self._listbox.nearest(event.y)
         if idx < 0 or idx >= len(self._displayed):
             return
+        # nearest() always returns the closest item even for clicks in empty
+        # space below the last item — verify the click is within the item bbox.
+        bbox = self._listbox.bbox(idx)
+        if not bbox or event.y >= bbox[1] + bbox[3]:
+            return
         if self._displayed[idx].id == self._selected_id:
             self._listbox.selection_clear(0, "end")
             self._selected_id = None
