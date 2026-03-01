@@ -6,6 +6,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from models import Resident, Address
 import lang
+import openpyxl  # must be imported before any patch.dict(sys.modules) context to prevent numpy reload warning
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
