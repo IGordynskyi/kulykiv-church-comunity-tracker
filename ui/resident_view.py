@@ -301,6 +301,11 @@ class ResidentViewPanel(ttk.Frame):
             return
         dlg = EventDialog(self, res)
         if dlg.result:
+            if dlg.result.event_type == "death" and res.status == "deceased":
+                messagebox.showinfo(lang.get("already_deceased"),
+                                    lang.get("already_deceased_msg", name=res.full_name),
+                                    parent=self)
+                return
             event = db.add_event(dlg.result)
             if event.event_type == "baptism" and not res.baptism_date:
                 res.baptism_date = event.event_date
@@ -309,11 +314,6 @@ class ResidentViewPanel(ttk.Frame):
                 res.marriage_date = event.event_date
                 db.update_resident(res)
             elif event.event_type == "death":
-                if res.status == "deceased":
-                    messagebox.showinfo(lang.get("already_deceased"),
-                                        lang.get("already_deceased_msg", name=res.full_name),
-                                        parent=self)
-                    return
                 db.mark_deceased(res.id, event.event_date)
             self._refresh_residents()
             self._refresh_events()
