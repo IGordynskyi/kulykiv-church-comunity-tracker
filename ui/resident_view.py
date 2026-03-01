@@ -5,6 +5,7 @@ from models import Address, Resident, Event
 import database as db
 import lang
 from ui.dialogs import ResidentDialog, ResidentViewDialog, MarkDeceasedDialog, EventDialog
+from transliterate import normalize_for_search
 
 
 def _fmt_date(iso: str) -> str:
@@ -155,7 +156,7 @@ class ResidentViewPanel(ttk.Frame):
         self._apply_name_filter()
 
     def _apply_name_filter(self):
-        q = self._name_filter_var.get().strip().lower()
+        q = normalize_for_search(self._name_filter_var.get().strip())
         if self._address is None:
             if q:
                 self._global_search(q)
@@ -169,7 +170,7 @@ class ResidentViewPanel(ttk.Frame):
         # Normal mode: filter within the selected address
         self._tree.delete(*self._tree.get_children())
         for r in self._residents:
-            if q and q not in r.full_name.lower():
+            if q and q not in normalize_for_search(r.full_name):
                 continue
             self._insert_resident_row(r, r.full_name)
 
@@ -202,7 +203,7 @@ class ResidentViewPanel(ttk.Frame):
         """Search all residents by name across all addresses."""
         all_res = db.get_all_residents()
         addr_map = {a.id: a.street for a in db.get_addresses()}
-        matches = [r for r in all_res if q in r.full_name.lower()]
+        matches = [r for r in all_res if q in normalize_for_search(r.full_name)]
         self._residents = matches
         self._tree.delete(*self._tree.get_children())
         if matches:

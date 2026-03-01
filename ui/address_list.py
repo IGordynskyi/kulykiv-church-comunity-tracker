@@ -5,6 +5,7 @@ from models import Address
 import database as db
 import lang
 from ui.dialogs import AddressDialog
+from transliterate import normalize_for_search
 
 
 class AddressListPanel(ttk.Frame):
@@ -72,9 +73,9 @@ class AddressListPanel(ttk.Frame):
         self._apply_filter()
 
     def _apply_filter(self):
-        q = self._search_var.get().strip().lower()
+        q = normalize_for_search(self._search_var.get().strip())
         self._displayed = [a for a in self._addresses
-                           if not q or q in a.street.lower()]
+                           if not q or q in normalize_for_search(a.street)]
 
         self._listbox.delete(0, "end")
         for addr in self._displayed:

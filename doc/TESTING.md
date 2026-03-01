@@ -151,6 +151,66 @@ python3 -m pytest tests/
 
 ---
 
+### `tests/test_transliterate.py` — Ukrainian ↔ Latin transliteration
+
+| Test | Description |
+|---|---|
+| `TestUkToEn::test_simple_vowels_lowercase` | Lowercase vowels а е і о у transliterate to a e i o u |
+| `TestUkToEn::test_simple_vowels_uppercase` | Uppercase vowels А Е І О У transliterate to a e i o u |
+| `TestUkToEn::test_ye_vowel_lowercase` | `є` transliterates to `ye` |
+| `TestUkToEn::test_ye_vowel_uppercase` | `Є` transliterates to `ye` |
+| `TestUkToEn::test_yi_vowel_lowercase` | `ї` transliterates to `yi` |
+| `TestUkToEn::test_yi_vowel_uppercase` | `Ї` transliterates to `yi` |
+| `TestUkToEn::test_yu_vowel` | `ю` / `Ю` transliterate to `yu` |
+| `TestUkToEn::test_ya_vowel` | `я` / `Я` transliterate to `ya` |
+| `TestUkToEn::test_y_vowel` | `и` / `И` transliterate to `y` |
+| `TestUkToEn::test_i_vowel` | `і` / `І` transliterate to `i` |
+| `TestUkToEn::test_simple_consonants_lowercase` | All 15 simple lowercase consonants map to the expected Latin letter |
+| `TestUkToEn::test_simple_consonants_uppercase` | All 15 simple uppercase consonants map to the expected lowercase Latin letter |
+| `TestUkToEn::test_digraph_zh` | `ж` / `Ж` transliterate to `zh` |
+| `TestUkToEn::test_digraph_kh` | `х` / `Х` transliterate to `kh` |
+| `TestUkToEn::test_digraph_ts` | `ц` / `Ц` transliterate to `ts` |
+| `TestUkToEn::test_digraph_ch` | `ч` / `Ч` transliterate to `ch` |
+| `TestUkToEn::test_digraph_sh` | `ш` / `Ш` transliterate to `sh` |
+| `TestUkToEn::test_digraph_shch` | `щ` / `Щ` transliterate to `shch` |
+| `TestUkToEn::test_soft_sign_produces_empty_string` | Soft sign `ь` / `Ь` is dropped (produces empty string) |
+| `TestUkToEn::test_y_consonant` | `й` / `Й` transliterate to `y` |
+| `TestUkToEn::test_word_ivan` | `"Іван"` → `"ivan"` |
+| `TestUkToEn::test_word_shevchenko` | `"Шевченко"` → `"shevchenko"` |
+| `TestUkToEn::test_word_koval` | `"Коваль"` → `"koval"` (soft sign is dropped) |
+| `TestUkToEn::test_word_kulykiv` | `"Куликів"` → `"kulykiv"` |
+| `TestUkToEn::test_word_bohorodytsia` | `"Богородиця"` → `"bohorodytsya"` |
+| `TestUkToEn::test_latin_passthrough` | Latin characters not in the mapping table pass through unchanged |
+| `TestUkToEn::test_digits_passthrough` | Digit characters pass through unchanged |
+| `TestUkToEn::test_spaces_passthrough` | Spaces pass through; Cyrillic words in the string are still transliterated |
+| `TestUkToEn::test_street_name_with_number` | Mixed Cyrillic + punctuation + number string is handled correctly |
+| `TestUkToEn::test_empty_string` | Empty string input returns empty string |
+| `TestUkToEn::test_mixed_scripts` | Latin segments pass through while Cyrillic segments are transliterated |
+| `TestNormalizeForSearch::test_ukrainian_lowercased` | Ukrainian input is transliterated and lowercased |
+| `TestNormalizeForSearch::test_latin_lowercased` | Latin input is lowercased without modification |
+| `TestNormalizeForSearch::test_cyrillic_uppercase_lowercased` | All-uppercase Cyrillic is normalised to lowercase Latin |
+| `TestNormalizeForSearch::test_latin_uppercase_lowercased` | All-uppercase Latin is lowercased |
+| `TestNormalizeForSearch::test_shevchenko` | `"Шевченко"`, `"shevchenko"`, and `"SHEVCHENKO"` all normalize identically |
+| `TestNormalizeForSearch::test_empty_string` | Empty string normalizes to empty string |
+| `TestNormalizeForSearch::test_spaces_preserved` | Spaces are preserved after normalization |
+| `TestNormalizeForSearch::test_cross_script_match[ivan-…]` | Latin `"ivan"` matches Ukrainian name `"Іван Коваль"` |
+| `TestNormalizeForSearch::test_cross_script_match[Іван-…]` | Ukrainian `"Іван"` matches Latin name `"Ivan Koval"` |
+| `TestNormalizeForSearch::test_cross_script_match[koval-…]` | Latin `"koval"` matches Ukrainian name `"Коваль Іван"` |
+| `TestNormalizeForSearch::test_cross_script_match[Коваль-…]` | Ukrainian `"Коваль"` matches Latin name `"Koval Ivan"` |
+| `TestNormalizeForSearch::test_cross_script_match[shevch-…]` | Partial Latin query `"shevch"` matches Ukrainian `"Шевченко Тарас"` |
+| `TestNormalizeForSearch::test_cross_script_match[шевч-…]` | Partial Ukrainian query `"шевч"` matches Latin `"Shevchenko Taras"` |
+| `TestNormalizeForSearch::test_cross_script_match[ivan-Іван Шевченко]` | Latin `"ivan"` matches `"Іван Шевченко"` |
+| `TestNormalizeForSearch::test_cross_script_match[taras-…]` | Latin `"taras"` matches Ukrainian `"Тарас Шевченко"` |
+| `TestNormalizeForSearch::test_cross_script_no_match[petro-…]` | Unrelated Latin query does not match a Ukrainian name |
+| `TestNormalizeForSearch::test_cross_script_no_match[Петро-…]` | Unrelated Ukrainian query does not match a Latin name |
+| `TestNormalizeForSearch::test_cross_script_no_match[xyz-…]` | Nonsense query does not match any name |
+| `TestNormalizeForSearch::test_both_scripts_produce_same_result` | Ukrainian name and its Latin equivalent normalize to the same string |
+| `TestNormalizeForSearch::test_address_search_cyrillic_query` | Cyrillic address query matches a Cyrillic street name |
+| `TestNormalizeForSearch::test_address_search_latin_query` | Latin address query matches a Cyrillic street name |
+| `TestNormalizeForSearch::test_soft_sign_transparent_in_search` | `"Коваль"` and `"Koval"` normalize identically (soft sign is dropped) |
+
+---
+
 ### `tests/test_export.py` — Export and import
 
 | Test | Description |
