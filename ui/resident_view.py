@@ -138,7 +138,8 @@ class ResidentViewPanel(ttk.Frame):
     def load_address(self, address: Optional[Address]):
         self._address = address
         if address is None:
-            self._show_placeholder()
+            self._set_log("")
+            self._apply_name_filter()  # shows global search if filter active, else placeholder
             return
         self._header_var.set(address.street)
         self._set_buttons_state("normal")
@@ -147,39 +148,76 @@ class ResidentViewPanel(ttk.Frame):
 
     def _refresh_residents(self):
         if not self._address:
-            self._tree.delete(*self._tree.get_children())
+            # Re-run global search if one is active, otherwise just clear
+            self._apply_name_filter()
             return
         self._residents = db.get_residents(self._address.id)
         self._apply_name_filter()
 
     def _apply_name_filter(self):
         q = self._name_filter_var.get().strip().lower()
+        if self._address is None:
+            if q:
+                self._global_search(q)
+            else:
+                # No address, no filter → full placeholder state
+                self._tree.delete(*self._tree.get_children())
+                self._residents = []
+                self._header_var.set(lang.get("select_address_placeholder"))
+                self._set_buttons_state("disabled")
+            return
+        # Normal mode: filter within the selected address
         self._tree.delete(*self._tree.get_children())
         for r in self._residents:
             if q and q not in r.full_name.lower():
                 continue
-            if r.status == "deceased":
-                tag = "deceased"
-                status_label = lang.get("status_deceased")
-            elif r.status == "left":
-                tag = "left"
-                status_label = lang.get("status_left")
-            else:
-                tag = ""
-                status_label = lang.get("status_active")
-            self._tree.insert(
-                "", "end",
-                iid=str(r.id),
-                values=(
-                    r.full_name,
-                    _fmt_date(r.birth_date or ""),
-                    lang.get("yes") if r.is_baptized else lang.get("no"),
-                    lang.get("yes") if r.is_married  else lang.get("no"),
-                    status_label,
-                    _fmt_date(r.death_date or ""),
-                ),
-                tags=(tag,),
-            )
+            self._insert_resident_row(r, r.full_name)
+
+    def _insert_resident_row(self, r, name_text: str):
+        """Insert a single resident into the treeview."""
+        if r.status == "deceased":
+            tag = "deceased"
+            status_label = lang.get("status_deceased")
+        elif r.status == "left":
+            tag = "left"
+            status_label = lang.get("status_left")
+        else:
+            tag = ""
+            status_label = lang.get("status_active")
+        self._tree.insert(
+            "", "end",
+            iid=str(r.id),
+            values=(
+                name_text,
+                _fmt_date(r.birth_date or ""),
+                lang.get("yes") if r.is_baptized else lang.get("no"),
+                lang.get("yes") if r.is_married  else lang.get("no"),
+                status_label,
+                _fmt_date(r.death_date or ""),
+            ),
+            tags=(tag,),
+        )
+
+    def _global_search(self, q: str):
+        """Search all residents by name across all addresses."""
+        all_res = db.get_all_residents()
+        addr_map = {a.id: a.street for a in db.get_addresses()}
+        matches = [r for r in all_res if q in r.full_name.lower()]
+        self._residents = matches
+        self._tree.delete(*self._tree.get_children())
+        if matches:
+            self._header_var.set(lang.get("search_results_header"))
+            # Enable action buttons; Add Member requires a selected address
+            for btn in (self._btn_view, self._btn_edit, self._btn_event,
+                        self._btn_death, self._btn_left, self._btn_delete):
+                btn.config(state="normal")
+            self._btn_add.config(state="disabled")
+            for r in matches:
+                street = addr_map.get(r.address_id, "")
+                self._insert_resident_row(r, f"{r.full_name}  —  {street}")
+        else:
+            self._header_var.set(lang.get("select_address_placeholder"))
+            self._set_buttons_state("disabled")
 
     def _refresh_events(self):
         if not self._address:
@@ -249,7 +287,7 @@ class ResidentViewPanel(ttk.Frame):
             messagebox.showinfo(lang.get("info"),
                                 lang.get("select_resident_first"), parent=self)
             return
-        dlg = ResidentDialog(self, self._address.id, res)
+        dlg = ResidentDialog(self, res.address_id, res)
         if dlg.result:
             db.update_resident(dlg.result)
             self._refresh_residents()

@@ -20,7 +20,7 @@ class Resident:
     baptism_date: Optional[str] = None     # YYYY-MM-DD
     marriage_date: Optional[str] = None    # YYYY-MM-DD
     death_date: Optional[str] = None       # YYYY-MM-DD
-    status: str = "active"                 # 'active' or 'deceased'
+    status: str = "active"                 # 'active', 'deceased', or 'left'
     father: Optional[str] = None
     mother: Optional[str] = None
     spouse: Optional[str] = None

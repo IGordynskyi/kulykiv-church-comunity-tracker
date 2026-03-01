@@ -53,6 +53,7 @@ class AddressListPanel(ttk.Frame):
         scrollbar.pack(side="right", fill="y")
         self._listbox.pack(side="left", fill="both", expand=True)
         self._listbox.bind("<<ListboxSelect>>", self._on_listbox_select)
+        self._listbox.bind("<ButtonPress-1>", self._on_listbox_click)
         self._listbox.bind("<Double-Button-1>", lambda e: self._edit_address())
 
         btn_frame = ttk.Frame(self)
@@ -99,6 +100,19 @@ class AddressListPanel(ttk.Frame):
         else:
             self._selected_id = None
             self._on_select(None)
+
+    def _on_listbox_click(self, event):
+        """Clicking the already-selected item deselects it (toggles off).
+        Must use ButtonPress-1 (fires before selection changes) so we can
+        compare against the pre-click selected ID."""
+        idx = self._listbox.nearest(event.y)
+        if idx < 0 or idx >= len(self._displayed):
+            return
+        if self._displayed[idx].id == self._selected_id:
+            self._listbox.selection_clear(0, "end")
+            self._selected_id = None
+            self._on_select(None)
+            return "break"  # prevent the listbox from re-selecting the item
 
     def _selected_address(self) -> Optional[Address]:
         sel = self._listbox.curselection()

@@ -64,6 +64,8 @@ _STRINGS = {
     # ── Resident panel ───────────────────────────────────────────────────────
     "select_address_placeholder": {"en": "← Select an address",
                                    "uk": "← Оберіть адресу"},
+    "search_results_header":      {"en": "Search results",
+                                   "uk": "Результати пошуку"},
     "col_name":             {"en": "Name",               "uk": "Ім'я"},
     "col_dob":              {"en": "Date of Birth",      "uk": "Дата народження"},
     "col_baptized":         {"en": "Baptized",           "uk": "Охрещений"},
@@ -172,14 +174,14 @@ _STRINGS = {
     "about_text":           {
         "en": (
             "Church Community Population Tracker\n"
-            "Version 1.0\n\n"
+            "Version 1.4\n\n"
             "Track residents, life events, and family groups\n"
             "for your church community.\n\n"
             "Data is stored locally in church.db"
         ),
         "uk": (
             "Трекер населення церковної громади\n"
-            "Версія 1.0\n\n"
+            "Версія 1.4\n\n"
             "Відстежуйте мешканців, події та сімейні групи\n"
             "вашої церковної громади.\n\n"
             "Дані зберігаються локально у файлі church.db"

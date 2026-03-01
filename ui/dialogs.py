@@ -220,7 +220,12 @@ class ResidentDialog(tk.Toplevel):
 
         notes  = self._notes_text.get("1.0", "end-1c").strip()
         death  = values["lbl_death"]
-        status = "deceased" if death else (self.resident.status if self.resident else "active")
+        if death:
+            status = "deceased"
+        elif not self.resident or self.resident.status == "deceased":
+            status = "active"
+        else:
+            status = self.resident.status  # preserve "left" if no death date
         father = self._father.get().strip() or None
         mother = self._mother.get().strip() or None
         spouse = self._spouse.get().strip() or None
