@@ -182,3 +182,23 @@ python3 -m pytest tests/
 | `TestImportRows::test_status_mapping_deceased` | Status label `"deceased"` maps to DB value `"deceased"` |
 | `TestImportRows::test_unknown_status_defaults_to_active` | Unrecognised status values default to `"active"` |
 | `TestCsvRoundTrip::test_export_then_import` | A resident exported to CSV and re-imported into a fresh DB retains all field values |
+| `TestExportExcel::test_creates_xlsx_file` | `export_excel` creates a real `.xlsx` file on disk |
+| `TestExportExcel::test_header_row_present` | Exported `.xlsx` contains a header row with column names |
+| `TestExportExcel::test_header_is_bold` | Header row cells are formatted bold in the Excel output |
+| `TestExportExcel::test_data_row_count` | Exported `.xlsx` contains one data row per resident plus the header |
+| `TestExportExcel::test_empty_residents_only_header` | Exporting an empty list produces a file with only the header row |
+| `TestExportExcel::test_data_sorted_by_last_then_first` | Residents are sorted by last name then first name in the Excel export |
+| `TestExportExcel::test_date_fields_written` | Date columns are written correctly; absent dates produce an empty/null cell |
+| `TestExportExcel::test_clears_address_cache_before_export` | The address lookup cache is cleared at the start of each Excel export |
+| `TestExportExcel::test_raises_runtime_error_without_openpyxl` | `export_excel` raises `RuntimeError` with an install hint when `openpyxl` is missing |
+| `TestImportExcel::test_raises_runtime_error_without_openpyxl` | `import_excel` raises `RuntimeError` with an install hint when `openpyxl` is missing |
+| `TestImportExcel::test_skips_header_row` | The header row of the `.xlsx` file is not imported as a resident record |
+| `TestImportExcel::test_imports_new_resident` | A valid row in an `.xlsx` file creates a new resident with all fields |
+| `TestImportExcel::test_skips_duplicate_resident` | Re-importing the same `.xlsx` row increments the skip counter instead |
+| `TestImportExcel::test_date_fields_imported` | Birth, baptism, and death dates are read correctly from Excel cells |
+| `TestImportExcel::test_status_mapping_ukrainian` | Ukrainian status label `"активний"` in Excel maps to DB value `"active"` |
+| `TestImportExcel::test_status_mapping_deceased` | Status label `"deceased"` in Excel maps to DB value `"deceased"` |
+| `TestImportExcel::test_status_mapping_left_ukrainian` | Ukrainian status label `"виїхав"` in Excel maps to DB value `"left"` |
+| `TestImportExcel::test_unknown_status_defaults_to_active` | Unrecognised status values in Excel default to `"active"` |
+| `TestImportExcel::test_skips_rows_with_missing_fields` | Excel rows missing last name, first name, or street are silently skipped |
+| `TestExcelRoundTrip::test_export_then_import` | A resident exported to `.xlsx` and re-imported into a fresh DB retains all field values |
