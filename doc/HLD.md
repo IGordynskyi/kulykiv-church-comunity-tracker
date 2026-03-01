@@ -1,7 +1,7 @@
 # High-Level Design Document
 ## Church Community Population Tracker
-**Version:** 1.4
-**Date:** 2026-02-28
+**Version:** 1.5
+**Date:** 2026-03-01
 **Status:** Current
 
 ---
@@ -15,6 +15,7 @@
 | 1.2 | 2026-02-28 | Added import from CSV/Excel; hardcoded city name (Kulykiv); DD.MM.YYYY display format for all dates; View (read-only) button; address format "Street Name Number" with Python-based Unicode sort; removed dummy seed data |
 | 1.3 | 2026-02-28 | Added Father, Mother, Husband/Wife fields to Resident; DB migration for existing databases; active parishioner count in address panel |
 | 1.4 | 2026-02-28 | Added "left" status (Mark Left / Виїхав); real-time search filter in both panels; window/taskbar icon (`img/church.png` + `church.ico`); fixed `install.py` crash; fixed export/import for "left" status |
+| 1.5 | 2026-03-01 | CSV export defaults to `backup/` folder; Excel export defaults to `xlsx-reports/` folder; both folders created automatically on first export |
 
 ---
 
@@ -124,6 +125,8 @@ church_tracker/
 ├── requirements.txt     openpyxl
 ├── pyrightconfig.json   Pylance / Pyright IDE config
 ├── church.db            SQLite database (created on first run)
+├── backup/              Default destination for CSV exports (created on first export)
+├── xlsx-reports/        Default destination for Excel exports (created on first export)
 └── ui/
     ├── __init__.py
     ├── address_list.py  Left panel — address list
@@ -434,13 +437,22 @@ User selects resident, clicks "Mark Deceased"
         └── self._on_change()
 ```
 
-### 7.5 Exporting to Excel
+### 7.5 Exporting to CSV / Excel
 
 ```
+User: File → Export to CSV…
+  │
+  └── MainWindow._export_csv()
+        ├── ensure backup/ directory exists (os.makedirs)
+        ├── filedialog.asksaveasfilename(initialdir=backup/, initialfile=backup_<timestamp>.csv)
+        ├── db.get_all_residents()
+        └── export.export_csv(path, residents)
+
 User: File → Export to Excel…
   │
   └── MainWindow._export_excel()
-        ├── filedialog.asksaveasfilename()
+        ├── ensure xlsx-reports/ directory exists (os.makedirs)
+        ├── filedialog.asksaveasfilename(initialdir=xlsx-reports/, initialfile=export_<timestamp>.xlsx)
         ├── db.get_all_residents()
         └── export.export_excel(path, residents)
               ├── import openpyxl  (raises RuntimeError if missing)

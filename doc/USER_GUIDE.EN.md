@@ -235,8 +235,15 @@ Go to **File** in the menu bar:
 | **Export to CSV…** | Saves all residents to a `.csv` file (opens in Excel, Notepad, etc.) |
 | **Export to Excel…** | Saves all residents to a `.xlsx` Excel file with a styled header row |
 
-You will be asked to choose a save location. The export includes all residents
-from all addresses, sorted alphabetically by last name.
+A save dialog opens with a pre-filled timestamped filename and a default save location:
+
+| Format | Default folder |
+|---|---|
+| CSV | `backup/` (inside the app folder) |
+| Excel | `xlsx-reports/` (inside the app folder) |
+
+You can rename the file or navigate to a different folder before saving.
+The export includes all residents from all addresses, sorted alphabetically by last name.
 
 > **Note:** Excel export requires the `openpyxl` package. This is installed
 > automatically by the installer. If you see an error, run `pip install openpyxl`.

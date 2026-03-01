@@ -112,10 +112,16 @@ class MainWindow(tk.Tk):
     # ── Export ───────────────────────────────────────────────────────────────
 
     def _export_csv(self):
+        backup_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "backup")
+        os.makedirs(backup_dir, exist_ok=True)
+        import datetime
+        default_name = datetime.datetime.now().strftime("backup_%Y-%m-%d_%H-%M-%S.csv")
         path = filedialog.asksaveasfilename(
             defaultextension=".csv",
             filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
             title=lang.get("menu_export_csv").rstrip("…"),
+            initialdir=backup_dir,
+            initialfile=default_name,
         )
         if not path:
             return
@@ -129,10 +135,16 @@ class MainWindow(tk.Tk):
             messagebox.showerror(lang.get("export_failed"), str(e), parent=self)
 
     def _export_excel(self):
+        reports_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "xlsx-reports")
+        os.makedirs(reports_dir, exist_ok=True)
+        import datetime
+        default_name = datetime.datetime.now().strftime("export_%Y-%m-%d_%H-%M-%S.xlsx")
         path = filedialog.asksaveasfilename(
             defaultextension=".xlsx",
             filetypes=[("Excel files", "*.xlsx"), ("All files", "*.*")],
             title=lang.get("menu_export_excel").rstrip("…"),
+            initialdir=reports_dir,
+            initialfile=default_name,
         )
         if not path:
             return
